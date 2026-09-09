@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>リンク台帳</title>
+<title>リンクダッシュボード</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -22,7 +22,10 @@
     --folder-soft:#f3e6da;
     --other:#3E4E6B;
     --other-soft:#e5e8ee;
+    --misc:#6b4e70;
+    --misc-soft:#ece3ec;
     --danger:#a4432e;
+    --link:#2B4570;
   }
   *{box-sizing:border-box;}
   body{
@@ -34,6 +37,15 @@
     font-family:"Zen Kaku Gothic New",-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN",sans-serif;
     padding:22px 14px 70px;
     min-height:100vh;
+  }
+  #app, #loginScreen{
+    max-width:760px;
+    margin:0 auto;
+  }
+  @media(min-width:900px){
+    body{padding:40px 24px 90px;}
+    h1{font-size:36px;}
+    .sub{font-size:15px;}
   }
 
   /* ---------- login screen ---------- */
@@ -105,12 +117,6 @@
     margin-bottom:22px;
     padding-bottom:16px;
     border-bottom:3px double var(--ink);
-  }
-  .masthead .kicker{
-    font-size:11px;
-    letter-spacing:0.14em;
-    color:var(--ink-soft);
-    margin:0 0 4px;
   }
   h1{
     font-family:"Fraunces",serif;
@@ -190,10 +196,10 @@
   .grid{
     display:grid;
     grid-template-columns:1fr 1fr;
-    gap:8px;
+    gap:10px;
   }
-  @media(min-width:640px){
-    .grid{grid-template-columns:1fr 1fr 1fr;}
+  @media(min-width:900px){
+    .grid{gap:16px;}
   }
 
   .card{
@@ -206,6 +212,15 @@
     display:flex;
     flex-direction:column;
   }
+  @media(min-width:900px){
+    .card{padding:20px 18px 16px 22px;}
+    .card-title{font-size:17px;}
+    .card-note{font-size:13px;}
+    .link-row a{font-size:13px;}
+    .link-row .link-title{font-size:13.5px;}
+    .card-actions button{font-size:12.5px;}
+    .tag{font-size:11px;padding:2px 8px;}
+  }
   .card::before{
     content:"";
     position:absolute;
@@ -216,6 +231,7 @@
   .card.cat-app::before{background:var(--app);}
   .card.cat-folder::before{background:var(--folder);}
   .card.cat-sheet::before{background:var(--other);}
+  .card.cat-misc::before{background:var(--misc);}
 
   .tag{
     display:inline-block;
@@ -228,6 +244,7 @@
   .cat-app .tag{background:var(--app-soft); color:var(--app);}
   .cat-folder .tag{background:var(--folder-soft); color:var(--folder);}
   .cat-sheet .tag{background:var(--other-soft); color:var(--other);}
+  .cat-misc .tag{background:var(--misc-soft); color:var(--misc);}
 
   .card-title{
     font-size:13.5px;
@@ -244,17 +261,29 @@
     word-break:break-word;
     line-height:1.5;
   }
-  .card-url{
-    font-size:10px;
-    color:var(--ink-soft);
-    word-break:break-all;
+
+  .links-list{
     margin:0 0 8px;
     padding-top:6px;
     border-top:1px dashed var(--rule);
-    display:-webkit-box;
-    -webkit-line-clamp:1;
-    -webkit-box-orient:vertical;
-    overflow:hidden;
+    display:flex;
+    flex-direction:column;
+    gap:5px;
+  }
+  .link-row a{
+    display:block;
+    color:var(--link);
+    text-decoration:none;
+    font-size:11px;
+    word-break:break-all;
+    line-height:1.4;
+  }
+  .link-row a:hover{text-decoration:underline;}
+  .link-row .link-title{
+    display:block;
+    font-weight:600;
+    font-size:12px;
+    color:var(--ink);
   }
   .card-empty-url{
     font-size:11px;
@@ -318,7 +347,6 @@
     font-weight:600;
   }
   .field{margin-bottom:14px;}
-  .field.hidden{display:none;}
   .field label{
     display:block;
     font-size:11.5px;
@@ -338,6 +366,54 @@
   }
   .field textarea{resize:vertical;min-height:56px;}
   .field input:focus, .field textarea:focus, .field select:focus{outline:2px solid var(--ink);outline-offset:0;}
+
+  .links-editor label.section-label{
+    display:block;
+    font-size:11.5px;
+    color:var(--ink-soft);
+    margin-bottom:6px;
+    font-weight:500;
+  }
+  .link-edit-row{
+    display:flex;
+    gap:6px;
+    margin-bottom:8px;
+    align-items:flex-start;
+  }
+  .link-edit-row .link-inputs{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    gap:5px;
+  }
+  .link-edit-row input{
+    padding:8px 9px;
+    border:1px solid var(--rule);
+    border-radius:3px;
+    font-size:13px;
+    font-family:inherit;
+  }
+  .link-edit-row button{
+    background:none;
+    border:none;
+    color:var(--danger);
+    font-size:12px;
+    cursor:pointer;
+    padding:8px 2px;
+  }
+  .add-link-btn{
+    background:none;
+    border:1px dashed var(--rule);
+    border-radius:3px;
+    color:var(--ink-soft);
+    padding:8px;
+    font-size:12.5px;
+    width:100%;
+    cursor:pointer;
+    font-family:inherit;
+    margin-bottom:14px;
+  }
+
   .modal-actions{
     display:flex;
     gap:10px;
@@ -377,7 +453,7 @@
 <!-- ===== LOGIN SCREEN ===== -->
 <div id="loginScreen">
   <div class="lock">🔒</div>
-  <h2>リンク台帳</h2>
+  <h2>リンクダッシュボード</h2>
   <p>許可されたGoogleアカウントでログインしてください。</p>
   <button class="google-btn" onclick="signIn()">
     <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84c-.21 1.13-.85 2.09-1.81 2.73v2.27h2.92c1.71-1.57 2.69-3.89 2.69-6.64z"/><path fill="#34A853" d="M9 18c2.43 0 4.47-.81 5.96-2.18l-2.92-2.27c-.81.54-1.84.86-3.04.86-2.34 0-4.32-1.58-5.03-3.7H.96v2.34C2.44 15.98 5.48 18 9 18z"/><path fill="#FBBC05" d="M3.97 10.71c-.18-.54-.28-1.11-.28-1.71s.1-1.17.28-1.71V4.95H.96C.35 6.17 0 7.55 0 9s.35 2.83.96 4.05l3.01-2.34z"/><path fill="#EA4335" d="M9 3.58c1.32 0 2.51.45 3.44 1.35l2.59-2.59C13.47.89 11.43 0 9 0 5.48 0 2.44 2.02.96 4.95l3.01 2.34C4.68 5.16 6.66 3.58 9 3.58z"/></svg>
@@ -396,8 +472,7 @@
   </div>
 
   <div class="masthead">
-    <p class="kicker">河村研究室 ・ 私用リンク台帳</p>
-    <h1>リンク台帳</h1>
+    <h1>リンクダッシュボード</h1>
     <p class="sub">開発したアプリと講義の共有フォルダを，探さずに済む一か所へ。</p>
   </div>
 
@@ -419,19 +494,17 @@
     </div>
     <div class="field">
       <label>カテゴリ</label>
-      <select id="fCategory" onchange="toggleManualField()">
+      <select id="fCategory">
         <option value="app">講義アプリ</option>
         <option value="folder">講義資料共有フォルダー</option>
         <option value="sheet">出欠シート</option>
+        <option value="misc">その他</option>
       </select>
     </div>
-    <div class="field">
-      <label>URL</label>
-      <input id="fUrl" type="text" placeholder="https://…（あとで入力でも可）">
-    </div>
-    <div class="field" id="manualField">
-      <label>使い方マニュアルURL（任意）</label>
-      <input id="fManualUrl" type="text" placeholder="https://…">
+    <div class="links-editor">
+      <label class="section-label">URL（項目名＋リンク。複数追加できます）</label>
+      <div id="linksContainer"></div>
+      <button type="button" class="add-link-btn" onclick="addLinkRow()">＋ URLを追加</button>
     </div>
     <div class="field">
       <label>メモ（任意）</label>
@@ -448,8 +521,7 @@
 
 <script>
 /* =====================================================================
-   Firebase 設定 — ここを自分のFirebaseプロジェクトの値に置き換えてください
-   （Firebaseコンソール → プロジェクトの設定 → マイアプリ → SDK設定 に表示されます）
+   Firebase 設定
    ===================================================================== */
 const firebaseConfig = {
   apiKey: "AIzaSyC9dCJdRnAV0rrnlGID6ZEId5NMmImh2jQ",
@@ -461,7 +533,7 @@ const firebaseConfig = {
   appId: "1:715641780317:web:761fc0d4191e2b9b1435b4"
 };
 
-// ここにアクセスを許可するGoogleアカウントのメールアドレスを列挙してください
+// アクセスを許可するGoogleアカウント
 const ALLOWED_EMAILS = [
   "ootaniah@nbu.ac.jp",
   "kawamurayj@nbu.ac.jp",
@@ -477,19 +549,30 @@ const db = firebase.database();
 
 let currentUser = null;
 let entries = [];
+let modalLinks = []; // [{title, url}] being edited in the modal
 
 const seedEntries = [
-  {id:"seed1", name:"授業出席管理アプリ", category:"app", url:"https://kawamurayj-droid.github.io/lecture-attendance/", manualUrl:"", note:""},
-  {id:"seed2", name:"意見交換アプリ", category:"app", url:"https://kawamurayj-droid.github.io/opinion-exchange-app/", manualUrl:"", note:""},
-  {id:"seed3", name:"GW相互評価アプリ", category:"app", url:"https://kawamurayj-droid.github.io/peer-eval-app/", manualUrl:"", note:""},
-  {id:"seed4", name:"国試対策過去問アプリ", category:"app", url:"https://kawamurayj-droid.github.io/kokka-quiz-app/", manualUrl:"", note:""},
-  {id:"seed5", name:"ゼミナールⅡB", category:"folder", url:"https://drive.google.com/drive/folders/1e9EMZ758THxZnm5MnhxdBgNfn9OstTaF?usp=drive_link", note:""},
-  {id:"seed6", name:"社会福祉入門", category:"folder", url:"https://drive.google.com/drive/folders/1mB4PRggu2_rpwsD4vmwDo-OYWy-lz3ae?usp=sharing", note:""},
-  {id:"seed7", name:"実習１", category:"folder", url:"", note:"URL未登録"},
-  {id:"seed8", name:"社会参画実習", category:"sheet", url:"https://docs.google.com/spreadsheets/d/1V0fyaQhlFLnVVroJVo80E4u9m6afAQarCexBIqW-Jf4/edit?usp=drive_link", note:""},
-  {id:"seed9", name:"ゼミナールⅡB", category:"sheet", url:"https://docs.google.com/spreadsheets/d/1pW90TXCHwzwP38Wp6Z4xi6brlirh7Cw5fFD9pp9dNQI/edit?usp=drive_link", note:""},
-  {id:"seed10", name:"ゼミナールⅢ", category:"sheet", url:"https://docs.google.com/spreadsheets/d/1JMty9gaoA5PA96FOzICiPjkCEkDWh5G8dP5hJku-JTA/edit?usp=sharing", note:""},
-  {id:"seed11", name:"社会参画実習２", category:"sheet", url:"https://docs.google.com/spreadsheets/d/1MeIPigru4sRxCiPsNCujkhfMSDETy6Gr8e7NrtOzEoA/edit?usp=sharing", note:""},
+  {id:"seed1", name:"授業出席管理アプリ", category:"app", note:"",
+   links:[{title:"アプリを開く", url:"https://kawamurayj-droid.github.io/lecture-attendance/"}]},
+  {id:"seed2", name:"意見交換アプリ", category:"app", note:"",
+   links:[{title:"アプリを開く", url:"https://kawamurayj-droid.github.io/opinion-exchange-app/"}]},
+  {id:"seed3", name:"GW相互評価アプリ", category:"app", note:"",
+   links:[{title:"アプリを開く", url:"https://kawamurayj-droid.github.io/peer-eval-app/"}]},
+  {id:"seed4", name:"国試対策過去問アプリ", category:"app", note:"",
+   links:[{title:"アプリを開く", url:"https://kawamurayj-droid.github.io/kokka-quiz-app/"}]},
+  {id:"seed5", name:"ゼミナールⅡB", category:"folder", note:"",
+   links:[{title:"資料フォルダ", url:"https://drive.google.com/drive/folders/1e9EMZ758THxZnm5MnhxdBgNfn9OstTaF?usp=drive_link"}]},
+  {id:"seed6", name:"社会福祉入門", category:"folder", note:"",
+   links:[{title:"資料フォルダ", url:"https://drive.google.com/drive/folders/1mB4PRggu2_rpwsD4vmwDo-OYWy-lz3ae?usp=sharing"}]},
+  {id:"seed7", name:"実習１", category:"folder", note:"URL未登録", links:[]},
+  {id:"seed8", name:"社会参画実習", category:"sheet", note:"",
+   links:[{title:"出欠シート", url:"https://docs.google.com/spreadsheets/d/1V0fyaQhlFLnVVroJVo80E4u9m6afAQarCexBIqW-Jf4/edit?usp=drive_link"}]},
+  {id:"seed9", name:"ゼミナールⅡB", category:"sheet", note:"",
+   links:[{title:"出欠シート", url:"https://docs.google.com/spreadsheets/d/1pW90TXCHwzwP38Wp6Z4xi6brlirh7Cw5fFD9pp9dNQI/edit?usp=drive_link"}]},
+  {id:"seed10", name:"ゼミナールⅢ", category:"sheet", note:"",
+   links:[{title:"出欠シート", url:"https://docs.google.com/spreadsheets/d/1JMty9gaoA5PA96FOzICiPjkCEkDWh5G8dP5hJku-JTA/edit?usp=sharing"}]},
+  {id:"seed11", name:"社会参画実習２", category:"sheet", note:"",
+   links:[{title:"出欠シート", url:"https://docs.google.com/spreadsheets/d/1MeIPigru4sRxCiPsNCujkhfMSDETy6Gr8e7NrtOzEoA/edit?usp=sharing"}]},
 ];
 
 /* ---------------- auth ---------------- */
@@ -539,7 +622,10 @@ function loadEntries(){
   dbRef().once("value").then(snap=>{
     const val = snap.val();
     if(val){
-      entries = Object.keys(val).map(k=>({id:k, ...val[k]}));
+      entries = Object.keys(val).map(k=>{
+        const e = val[k];
+        return {id:k, name:e.name, category:e.category, note:e.note||"", links:e.links||[]};
+      });
     }else{
       entries = seedEntries;
       persistAll();
@@ -570,15 +656,36 @@ function showToast(msg){
 function esc(s){
   return (s||"").replace(/'/g,"\\'");
 }
-
-function copyUrl(url){
-  if(!url){ showToast("URL未入力です"); return; }
-  navigator.clipboard.writeText(url).then(()=>showToast("コピーしました"));
+function escHtml(s){
+  return (s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
 }
 
-function toggleManualField(){
-  const cat = document.getElementById("fCategory").value;
-  document.getElementById("manualField").classList.toggle("hidden", cat !== "app");
+/* ---------------- modal: dynamic link rows ---------------- */
+function renderLinksEditor(){
+  const container = document.getElementById("linksContainer");
+  container.innerHTML = "";
+  modalLinks.forEach((lk, idx)=>{
+    const row = document.createElement("div");
+    row.className = "link-edit-row";
+    row.innerHTML = `
+      <div class="link-inputs">
+        <input type="text" placeholder="項目名（例：資料フォルダ，出欠シート）" value="${escHtml(lk.title)}" oninput="modalLinks[${idx}].title=this.value">
+        <input type="text" placeholder="https://…" value="${escHtml(lk.url)}" oninput="modalLinks[${idx}].url=this.value">
+      </div>
+      <button type="button" onclick="removeLinkRow(${idx})">✕</button>
+    `;
+    container.appendChild(row);
+  });
+}
+
+function addLinkRow(){
+  modalLinks.push({title:"", url:""});
+  renderLinksEditor();
+}
+
+function removeLinkRow(idx){
+  modalLinks.splice(idx, 1);
+  renderLinksEditor();
 }
 
 function openModal(id){
@@ -589,19 +696,18 @@ function openModal(id){
     document.getElementById("editId").value = id;
     document.getElementById("fName").value = e.name;
     document.getElementById("fCategory").value = e.category;
-    document.getElementById("fUrl").value = e.url;
-    document.getElementById("fManualUrl").value = e.manualUrl || "";
     document.getElementById("fNote").value = e.note;
+    modalLinks = (e.links || []).map(l=>({title:l.title||"", url:l.url||""}));
   }else{
     document.getElementById("modalTitle").textContent = "リンクを追加";
     document.getElementById("editId").value = "";
     document.getElementById("fName").value = "";
     document.getElementById("fCategory").value = "app";
-    document.getElementById("fUrl").value = "";
-    document.getElementById("fManualUrl").value = "";
     document.getElementById("fNote").value = "";
+    modalLinks = [{title:"", url:""}];
   }
-  toggleManualField();
+  if(modalLinks.length === 0) modalLinks = [{title:"", url:""}];
+  renderLinksEditor();
 }
 
 function closeModal(){
@@ -612,12 +718,14 @@ function saveEntry(){
   const id = document.getElementById("editId").value;
   const name = document.getElementById("fName").value.trim();
   if(!name){ showToast("名前を入力してください"); return; }
+  const cleanLinks = modalLinks
+    .map(l=>({title:(l.title||"").trim(), url:(l.url||"").trim()}))
+    .filter(l=>l.url);
   const data = {
     name,
     category: document.getElementById("fCategory").value,
-    url: document.getElementById("fUrl").value.trim(),
-    manualUrl: document.getElementById("fManualUrl").value.trim(),
-    note: document.getElementById("fNote").value.trim()
+    note: document.getElementById("fNote").value.trim(),
+    links: cleanLinks
   };
   if(id){
     const idx = entries.findIndex(x=>x.id===id);
@@ -638,14 +746,16 @@ function deleteEntry(id){
   showToast("削除しました");
 }
 
+/* ---------------- render ---------------- */
 function render(){
   const q = (document.getElementById("searchInput").value || "").toLowerCase();
   const cats = [
     {key:"app", label:"講義アプリ", cls:"cat-app", dot:"var(--app)"},
     {key:"folder", label:"講義資料共有フォルダー", cls:"cat-folder", dot:"var(--folder)"},
-    {key:"sheet", label:"出欠シート", cls:"cat-sheet", dot:"var(--other)"}
+    {key:"sheet", label:"出欠シート", cls:"cat-sheet", dot:"var(--other)"},
+    {key:"misc", label:"その他", cls:"cat-misc", dot:"var(--misc)"}
   ];
-  const tagLabel = {app:"アプリ", folder:"フォルダ", sheet:"シート"};
+  const tagLabel = {app:"アプリ", folder:"フォルダ", sheet:"シート", misc:"その他"};
   const root = document.getElementById("listRoot");
   root.innerHTML = "";
   cats.forEach(cat=>{
@@ -670,20 +780,26 @@ function render(){
       items.forEach(e=>{
         const card = document.createElement("div");
         card.className = "card " + cat.cls;
-        const urlLine = e.url
-          ? `<p class="card-url">${e.url}</p>`
-          : `<p class="card-empty-url">URL未入力 — 編集して追加してください</p>`;
-        const noteLine = e.note ? `<p class="card-note">${e.note}</p>` : "";
-        const manualBtn = e.manualUrl ? `<button onclick="window.open('${esc(e.manualUrl)}','_blank')">マニュアル</button>` : "";
+        const links = e.links || [];
+        let linksHtml;
+        if(links.length === 0){
+          linksHtml = `<p class="card-empty-url">URL未入力 — 編集して追加してください</p>`;
+        }else{
+          linksHtml = `<div class="links-list">` + links.map(lk=>{
+            const safeUrl = escHtml(lk.url);
+            const label = lk.title ? `<span class="link-title">${escHtml(lk.title)}</span>` : "";
+            return `<div class="link-row">${label}<a href="${safeUrl}" target="_blank" rel="noopener">${safeUrl}</a></div>`;
+          }).join("") + `</div>`;
+        }
+        const noteLine = e.note ? `<p class="card-note">${escHtml(e.note)}</p>` : "";
+        const copyBtn = links.length > 0 ? `<button onclick="copyUrl('${esc(links[0].url)}')">コピー</button>` : "";
         card.innerHTML = `
           <span class="tag">${tagLabel[cat.key]}</span>
-          <p class="card-title">${e.name}</p>
+          <p class="card-title">${escHtml(e.name)}</p>
           ${noteLine}
-          ${urlLine}
+          ${linksHtml}
           <div class="card-actions">
-            ${e.url ? `<button onclick="copyUrl('${esc(e.url)}')">コピー</button>
-            <button onclick="window.open('${esc(e.url)}','_blank')">開く</button>` : ""}
-            ${manualBtn}
+            ${copyBtn}
             <button onclick="openModal('${e.id}')">編集</button>
             <button class="del" onclick="deleteEntry('${e.id}')">削除</button>
           </div>
@@ -694,6 +810,11 @@ function render(){
     section.appendChild(grid);
     root.appendChild(section);
   });
+}
+
+function copyUrl(url){
+  if(!url){ showToast("URL未入力です"); return; }
+  navigator.clipboard.writeText(url).then(()=>showToast("コピーしました"));
 }
 
 document.getElementById("searchInput").addEventListener("input", render);
