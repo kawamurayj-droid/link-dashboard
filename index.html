@@ -196,10 +196,10 @@
   .grid{
     display:grid;
     grid-template-columns:1fr 1fr;
-    gap:10px;
+    gap:14px;
   }
   @media(min-width:900px){
-    .grid{gap:16px;}
+    .grid{gap:20px;}
   }
 
   .card{
@@ -207,7 +207,7 @@
     background:var(--card);
     border:1px solid var(--rule);
     border-radius:3px;
-    padding:12px 10px 10px 14px;
+    padding:16px 14px 14px 20px;
     box-shadow:2px 3px 0 rgba(43,38,32,0.06);
     display:flex;
     flex-direction:column;
@@ -235,10 +235,10 @@
 
   .tag{
     display:inline-block;
-    font-size:9px;
-    padding:1px 6px;
+    font-size:11px;
+    padding:2px 8px;
     border-radius:9px;
-    margin-bottom:6px;
+    margin-bottom:8px;
     font-weight:500;
   }
   .cat-app .tag{background:var(--app-soft); color:var(--app);}
@@ -247,42 +247,42 @@
   .cat-misc .tag{background:var(--misc-soft); color:var(--misc);}
 
   .card-title{
-    font-size:13.5px;
+    font-size:16.5px;
     font-weight:700;
-    margin:0 0 4px;
+    margin:0 0 6px;
     word-break:break-word;
     line-height:1.35;
   }
   .card-note{
-    font-size:11px;
+    font-size:13px;
     color:var(--ink-soft);
-    margin:0 0 6px;
+    margin:0 0 8px;
     white-space:pre-wrap;
     word-break:break-word;
-    line-height:1.5;
+    line-height:1.55;
   }
 
   .links-list{
-    margin:0 0 8px;
-    padding-top:6px;
+    margin:0 0 10px;
+    padding-top:8px;
     border-top:1px dashed var(--rule);
     display:flex;
     flex-direction:column;
-    gap:5px;
+    gap:8px;
   }
   .link-row a{
     display:block;
     color:var(--link);
     text-decoration:none;
-    font-size:11px;
+    font-size:13px;
     word-break:break-all;
-    line-height:1.4;
+    line-height:1.45;
   }
   .link-row a:hover{text-decoration:underline;}
   .link-row .link-title{
     display:block;
     font-weight:600;
-    font-size:12px;
+    font-size:14px;
     color:var(--ink);
   }
   .card-empty-url{
@@ -302,7 +302,7 @@
     background:none;
     border:none;
     padding:0;
-    font-size:10.5px;
+    font-size:12.5px;
     color:var(--ink);
     cursor:pointer;
     font-family:inherit;
@@ -622,10 +622,20 @@ function loadEntries(){
   dbRef().once("value").then(snap=>{
     const val = snap.val();
     if(val){
+      let migrated = false;
       entries = Object.keys(val).map(k=>{
         const e = val[k];
-        return {id:k, name:e.name, category:e.category, note:e.note||"", links:e.links||[]};
+        let links = e.links;
+        if(!links){
+          // 旧形式（url / manualUrl フィールド）からの移行
+          links = [];
+          if(e.url) links.push({title:"", url:e.url});
+          if(e.manualUrl) links.push({title:"使い方マニュアル", url:e.manualUrl});
+          migrated = true;
+        }
+        return {id:k, name:e.name, category:e.category, note:e.note||"", links};
       });
+      if(migrated) persistAll();
     }else{
       entries = seedEntries;
       persistAll();
