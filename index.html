@@ -552,26 +552,26 @@ let entries = [];
 let modalLinks = []; // [{title, url}] being edited in the modal
 
 const seedEntries = [
-  {id:"seed1", name:"授業出席管理アプリ", category:"app", note:"",
+  {id:"seed1", name:"授業出席管理アプリ", category:"app", note:"", order:0,
    links:[{title:"アプリを開く", url:"https://kawamurayj-droid.github.io/lecture-attendance/"}]},
-  {id:"seed2", name:"意見交換アプリ", category:"app", note:"",
+  {id:"seed2", name:"意見交換アプリ", category:"app", note:"", order:1,
    links:[{title:"アプリを開く", url:"https://kawamurayj-droid.github.io/opinion-exchange-app/"}]},
-  {id:"seed3", name:"GW相互評価アプリ", category:"app", note:"",
+  {id:"seed3", name:"GW相互評価アプリ", category:"app", note:"", order:2,
    links:[{title:"アプリを開く", url:"https://kawamurayj-droid.github.io/peer-eval-app/"}]},
-  {id:"seed4", name:"国試対策過去問アプリ", category:"app", note:"",
+  {id:"seed4", name:"国試対策過去問アプリ", category:"app", note:"", order:3,
    links:[{title:"アプリを開く", url:"https://kawamurayj-droid.github.io/kokka-quiz-app/"}]},
-  {id:"seed5", name:"ゼミナールⅡB", category:"folder", note:"",
+  {id:"seed5", name:"ゼミナールⅡB", category:"folder", note:"", order:0,
    links:[{title:"資料フォルダ", url:"https://drive.google.com/drive/folders/1e9EMZ758THxZnm5MnhxdBgNfn9OstTaF?usp=drive_link"}]},
-  {id:"seed6", name:"社会福祉入門", category:"folder", note:"",
+  {id:"seed6", name:"社会福祉入門", category:"folder", note:"", order:1,
    links:[{title:"資料フォルダ", url:"https://drive.google.com/drive/folders/1mB4PRggu2_rpwsD4vmwDo-OYWy-lz3ae?usp=sharing"}]},
-  {id:"seed7", name:"実習１", category:"folder", note:"URL未登録", links:[]},
-  {id:"seed8", name:"社会参画実習", category:"sheet", note:"",
+  {id:"seed7", name:"実習１", category:"folder", note:"URL未登録", order:2, links:[]},
+  {id:"seed8", name:"社会参画実習", category:"sheet", note:"", order:0,
    links:[{title:"出欠シート", url:"https://docs.google.com/spreadsheets/d/1V0fyaQhlFLnVVroJVo80E4u9m6afAQarCexBIqW-Jf4/edit?usp=drive_link"}]},
-  {id:"seed9", name:"ゼミナールⅡB", category:"sheet", note:"",
+  {id:"seed9", name:"ゼミナールⅡB", category:"sheet", note:"", order:1,
    links:[{title:"出欠シート", url:"https://docs.google.com/spreadsheets/d/1pW90TXCHwzwP38Wp6Z4xi6brlirh7Cw5fFD9pp9dNQI/edit?usp=drive_link"}]},
-  {id:"seed10", name:"ゼミナールⅢ", category:"sheet", note:"",
+  {id:"seed10", name:"ゼミナールⅢ", category:"sheet", note:"", order:2,
    links:[{title:"出欠シート", url:"https://docs.google.com/spreadsheets/d/1JMty9gaoA5PA96FOzICiPjkCEkDWh5G8dP5hJku-JTA/edit?usp=sharing"}]},
-  {id:"seed11", name:"社会参画実習２", category:"sheet", note:"",
+  {id:"seed11", name:"社会参画実習２", category:"sheet", note:"", order:3,
    links:[{title:"出欠シート", url:"https://docs.google.com/spreadsheets/d/1MeIPigru4sRxCiPsNCujkhfMSDETy6Gr8e7NrtOzEoA/edit?usp=sharing"}]},
 ];
 
@@ -633,7 +633,12 @@ function loadEntries(){
           if(e.manualUrl) links.push({title:"使い方マニュアル", url:e.manualUrl});
           migrated = true;
         }
-        return {id:k, name:e.name, category:e.category, note:e.note||"", links};
+        let order = e.order;
+        if(order === undefined || order === null){
+          order = 9999;
+          migrated = true;
+        }
+        return {id:k, name:e.name, category:e.category, note:e.note||"", links, order};
       });
       if(migrated) persistAll();
     }else{
@@ -731,9 +736,10 @@ function saveEntry(){
   const cleanLinks = modalLinks
     .map(l=>({title:(l.title||"").trim(), url:(l.url||"").trim()}))
     .filter(l=>l.url);
+  const category = document.getElementById("fCategory").value;
   const data = {
     name,
-    category: document.getElementById("fCategory").value,
+    category,
     note: document.getElementById("fNote").value.trim(),
     links: cleanLinks
   };
@@ -741,7 +747,8 @@ function saveEntry(){
     const idx = entries.findIndex(x=>x.id===id);
     entries[idx] = {...entries[idx], ...data};
   }else{
-    entries.push({id: "e"+Date.now(), ...data});
+    const maxOrder = entries.filter(x=>x.category===category).reduce((m,x)=>Math.max(m, x.order||0), -1);
+    entries.push({id: "e"+Date.now(), order: maxOrder+1, ...data});
   }
   persistAll();
   closeModal();
@@ -771,7 +778,7 @@ function render(){
   cats.forEach(cat=>{
     const items = entries.filter(e=>e.category===cat.key && (
       !q || e.name.toLowerCase().includes(q) || (e.note||"").toLowerCase().includes(q)
-    ));
+    )).sort((a,b)=>(a.order||0)-(b.order||0));
     const section = document.createElement("section");
     const head = document.createElement("div");
     head.className = "shelf-label";
@@ -787,7 +794,7 @@ function render(){
       empty.textContent = "まだ登録がありません";
       grid.appendChild(empty);
     }else{
-      items.forEach(e=>{
+      items.forEach((e, i)=>{
         const card = document.createElement("div");
         card.className = "card " + cat.cls;
         const links = e.links || [];
@@ -803,6 +810,8 @@ function render(){
         }
         const noteLine = e.note ? `<p class="card-note">${escHtml(e.note)}</p>` : "";
         const copyBtn = links.length > 0 ? `<button onclick="copyUrl('${esc(links[0].url)}')">コピー</button>` : "";
+        const upBtn = i > 0 ? `<button onclick="moveEntry('${e.id}','${cat.key}',-1)">▲</button>` : "";
+        const downBtn = i < items.length - 1 ? `<button onclick="moveEntry('${e.id}','${cat.key}',1)">▼</button>` : "";
         card.innerHTML = `
           <span class="tag">${tagLabel[cat.key]}</span>
           <p class="card-title">${escHtml(e.name)}</p>
@@ -812,6 +821,8 @@ function render(){
             ${copyBtn}
             <button onclick="openModal('${e.id}')">編集</button>
             <button class="del" onclick="deleteEntry('${e.id}')">削除</button>
+            ${upBtn}
+            ${downBtn}
           </div>
         `;
         grid.appendChild(card);
@@ -825,6 +836,19 @@ function render(){
 function copyUrl(url){
   if(!url){ showToast("URL未入力です"); return; }
   navigator.clipboard.writeText(url).then(()=>showToast("コピーしました"));
+}
+
+function moveEntry(id, categoryKey, direction){
+  const items = entries.filter(e=>e.category===categoryKey).sort((a,b)=>(a.order||0)-(b.order||0));
+  const idx = items.findIndex(e=>e.id===id);
+  const swapIdx = idx + direction;
+  if(swapIdx < 0 || swapIdx >= items.length) return;
+  const a = items[idx], b = items[swapIdx];
+  const tmp = a.order;
+  a.order = b.order;
+  b.order = tmp;
+  persistAll();
+  render();
 }
 
 document.getElementById("searchInput").addEventListener("input", render);
