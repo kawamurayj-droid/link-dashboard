@@ -211,6 +211,10 @@
     box-shadow:2px 3px 0 rgba(43,38,32,0.06);
     display:flex;
     flex-direction:column;
+    cursor:grab;
+  }
+  .card.dragging{
+    opacity:0.4;
   }
   @media(min-width:900px){
     .card{padding:20px 18px 16px 22px;}
@@ -787,6 +791,9 @@ function render(){
 
     const grid = document.createElement("div");
     grid.className = "grid";
+    grid.dataset.category = cat.key;
+    grid.addEventListener("dragover", handleDragOver);
+    grid.addEventListener("drop", handleDrop);
 
     if(items.length === 0){
       const empty = document.createElement("div");
@@ -797,6 +804,10 @@ function render(){
       items.forEach((e, i)=>{
         const card = document.createElement("div");
         card.className = "card " + cat.cls;
+        card.draggable = true;
+        card.dataset.id = e.id;
+        card.addEventListener("dragstart", handleDragStart);
+        card.addEventListener("dragend", handleDragEnd);
         const links = e.links || [];
         let linksHtml;
         if(links.length === 0){
@@ -847,6 +858,55 @@ function moveEntry(id, categoryKey, direction){
   const tmp = a.order;
   a.order = b.order;
   b.order = tmp;
+  persistAll();
+  render();
+}
+
+/* ---------------- drag & drop (desktop / mouse pointers) ---------------- */
+let draggedId = null;
+
+function handleDragStart(ev){
+  draggedId = ev.currentTarget.dataset.id;
+  ev.currentTarget.classList.add("dragging");
+  ev.dataTransfer.effectAllowed = "move";
+  try{ ev.dataTransfer.setData("text/plain", draggedId); }catch(e){}
+}
+
+function handleDragEnd(ev){
+  ev.currentTarget.classList.remove("dragging");
+  draggedId = null;
+}
+
+function handleDragOver(ev){
+  ev.preventDefault();
+  const grid = ev.currentTarget;
+  const dragging = grid.querySelector(".card.dragging");
+  if(!dragging) return;
+  const cards = [...grid.querySelectorAll(".card:not(.dragging)")];
+  let closest = null;
+  let closestDist = Infinity;
+  cards.forEach(card=>{
+    const rect = card.getBoundingClientRect();
+    const cx = rect.left + rect.width/2;
+    const cy = rect.top + rect.height/2;
+    const dist = Math.hypot(ev.clientX - cx, ev.clientY - cy);
+    if(dist < closestDist){ closestDist = dist; closest = card; }
+  });
+  if(!closest) return;
+  const rect = closest.getBoundingClientRect();
+  const after = ev.clientY > rect.top + rect.height/2;
+  grid.insertBefore(dragging, after ? closest.nextSibling : closest);
+}
+
+function handleDrop(ev){
+  ev.preventDefault();
+  const grid = ev.currentTarget;
+  const categoryKey = grid.dataset.category;
+  const orderedIds = [...grid.querySelectorAll(".card")].map(c=>c.dataset.id);
+  orderedIds.forEach((id, idx)=>{
+    const entry = entries.find(e=>e.id===id);
+    if(entry) entry.order = idx;
+  });
   persistAll();
   render();
 }
